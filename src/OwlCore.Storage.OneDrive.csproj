@@ -19,6 +19,7 @@
     <Description></Description>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Arlodotexe/OwlCore.Storage.OneDrive</PackageProjectUrl>
     <PackageReleaseNotes>
 --- 0.3.0 ---
@@ -81,6 +82,10 @@ Initial release of OwlCore.Storage.OneDrive.
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="True" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

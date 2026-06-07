@@ -1,5 +1,6 @@
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using OwlCore.Storage.OneDrive.Streams;
 using System;
 using System.IO;
 using System.Threading;
@@ -13,6 +14,7 @@ namespace OwlCore.Storage.OneDrive;
 public class OneDriveFile : IFile, IChildFile, ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset
 {
     private readonly GraphServiceClient _graphClient;
+    private readonly string? _driveId;
     private OneDriveCreatedAtProperty? _createdAt;
     private OneDriveCreatedAtOffsetProperty? _createdAtOffset;
     private OneDriveLastAccessedAtProperty? _lastAccessedAt;
@@ -26,6 +28,20 @@ public class OneDriveFile : IFile, IChildFile, ICreatedAtOffset, ILastAccessedAt
     public OneDriveFile(GraphServiceClient graphClient, DriveItem driveItem)
     {
         _graphClient = graphClient;
+        _driveId = driveItem.ParentReference?.DriveId;
+        DriveItem = driveItem;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="OneDriveFile"/> using a known drive for better performance.
+    /// </summary>
+    /// <param name="graphClient">The authenticated Graph client.</param>
+    /// <param name="drive">The drive that contains the item.</param>
+    /// <param name="driveItem">The item that backs this file.</param>
+    public OneDriveFile(GraphServiceClient graphClient, Drive drive, DriveItem driveItem)
+    {
+        _graphClient = graphClient;
+        _driveId = drive.Id;
         DriveItem = driveItem;
     }
 
@@ -61,8 +77,8 @@ public class OneDriveFile : IFile, IChildFile, ICreatedAtOffset, ILastAccessedAt
     /// <inheritdoc />
     public virtual async Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        var drive = await _graphClient.Me.Drive.GetAsync(cancellationToken: cancellationToken);
-        var parent = await _graphClient.Drives[drive!.Id].Items[DriveItem.ParentReference!.Id].GetAsync(cancellationToken: cancellationToken);
+        var driveId = await GetDriveIdAsync(cancellationToken).ConfigureAwait(false);
+        var parent = await _graphClient.Drives[driveId].Items[DriveItem.ParentReference!.Id].GetAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return new OneDriveFolder(_graphClient, parent!);
     }
@@ -70,12 +86,22 @@ public class OneDriveFile : IFile, IChildFile, ICreatedAtOffset, ILastAccessedAt
     /// <inheritdoc />
     public async Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
-        if (accessMode == 0 || (int)accessMode > 3)
+        if (accessMode != FileAccess.Read && accessMode != FileAccess.Write && accessMode != FileAccess.ReadWrite)
             throw new ArgumentOutOfRangeException(nameof(accessMode));
 
-        var drive = await _graphClient.Me.Drive.GetAsync(cancellationToken: cancellationToken);
-        var result = await _graphClient.Drives[drive!.Id].Items[Id].Content.GetAsync(cancellationToken: cancellationToken);
+        var driveId = await GetDriveIdAsync(cancellationToken).ConfigureAwait(false);
 
-        return result!;
+        // All modes go through OneDriveWriteStream so callers always get a seekable,
+        // random-access buffer regardless of whether they intend to write.
+        return await OneDriveWriteStream.CreateAsync(_graphClient, driveId, Id, accessMode, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<string> GetDriveIdAsync(CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(_driveId))
+            return _driveId!;
+
+        var drive = await _graphClient.Me.Drive.GetAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        return drive!.Id!;
     }
 }

@@ -1,8 +1,6 @@
 # OwlCore.Storage.OneDrive [![Version](https://img.shields.io/nuget/v/OwlCore.Storage.OneDrive.svg)](https://www.nuget.org/packages/OwlCore.Storage.OneDrive)
 
-An implementation of OwlCore.Storage that uses MSGraph to access OneDrive.
-
-**NOTE:** This library is read-only for now, and doesn't support modifying folder contents. Check back later, or feel free to submit a PR.
+An implementation of OwlCore.Storage that uses Microsoft Graph to access OneDrive.
 
 ## Install
 
@@ -34,8 +32,9 @@ var driveItem = await graphClient.Drives[drives.Id].Items[knownFolderId].GetAsyn
 // Or, to get user's root folder in OneDrive:
 var driveItem = await graphClient.Drives[drive.Id].Root.GetAsync();
 
-// Pass starting item to a new OneDrive folder
-var oneDrive = new OneDriveFolder(graphClient, driveItem);
+// Pass starting item to a new OneDrive folder.
+// If you already have the drive, prefer the drive-aware constructor for better performance.
+var oneDrive = new OneDriveFolder(graphClient, drive!, driveItem);
 
 // Interact with OneDrive via the storage abstraction.
 // Extension methods GetFilesAsync and GetFolderAsync also available.
