@@ -17,9 +17,9 @@ jobs:
       with:
         dotnet-version: 10.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore OwlCore.Storage.OneDrive.slnx
     - name: Build
-      run: dotnet build --no-restore -p:Configuration=Release
+      run: dotnet build OwlCore.Storage.OneDrive.slnx -c Release --no-restore
     - name: Publish to NuGet
       run: dotnet nuget push "/home/runner/work/OwlCore.Storage.OneDrive/OwlCore.Storage.OneDrive/src/bin/Release/OwlCore.Storage.OneDrive.*.*.*.nupkg" --skip-duplicate --api-key ${{secrets.NUGET_KEY}} --source https://api.nuget.org/v3/index.json
       

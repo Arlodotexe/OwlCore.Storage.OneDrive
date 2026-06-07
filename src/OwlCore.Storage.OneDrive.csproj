@@ -77,19 +77,22 @@ Initial release of OwlCore.Storage.OneDrive.
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="LICENSE.txt">
+    <None Include="../LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.3" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
-    <PackageReference Include="Microsoft.Graph" Version="5.103.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Graph" Version="6.1.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
     <PackageReference Include="OwlCore.Storage" Version="0.15.0" />
-    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="All" />
-    <PackageReference Include="System.Linq.Async" Version="7.0.0" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
+    <PackageReference Include="PolySharp" Version="1.16.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.8" />
+    <PackageReference Include="System.Linq.Async" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>
